@@ -1,0 +1,29 @@
+{
+  "name": "Customer3",
+  "base": "BaseEntity",
+  "idInjection": true,
+  "properties": {
+    "name": {
+      "type": "string",
+      "unique": true
+    },
+    "age": {
+      "type": "number"
+    }
+  },
+  "validations": [],
+  "relations": {},
+  "acls": [],
+  "methods": {},
+  "mixins": {
+    "KafkaMixin": {
+      "clientOpts": {
+        "kafkaHost": "ev1:9091",
+        "connectTimeout": 3000,
+        "connectRetryOptions": {
+          "retries": 0
+        }
+      }
+    }
+  }
+}

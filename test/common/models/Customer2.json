@@ -1,0 +1,23 @@
+{
+  "name": "Customer2",
+  "base": "BaseEntity",
+  "idInjection": true,
+  "properties": {
+    "name": {
+      "type": "string",
+      "unique": true
+    },
+    "age": {
+      "type": "number"
+    }
+  },
+  "validations": [],
+  "relations": {},
+  "acls": [],
+  "methods": {},
+  "mixins": {
+    "KafkaMixin": {
+      "topicSuffixOverride": "CUST2"
+    }
+  }
+}

@@ -1,0 +1,14 @@
+{
+    "_meta": {
+        "sources": [
+            "../common/models"
+        ],
+        "mixins": [
+            "../common/mixins"
+        ]
+    },
+    "KafkaFailQueue": {
+        "dataSource": "db",
+        "public": true
+    }
+}

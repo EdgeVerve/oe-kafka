@@ -1,0 +1,38 @@
+{
+  "restApiRoot": "/api",
+  "host": "0.0.0.0",
+  "port": 3000,
+  "remoting": {
+    "context": false,
+    "rest": {
+      "normalizeHttpPath": false,
+      "xml": false
+    },
+    "json": {
+      "strict": false,
+      "limit": "100kb"
+    },
+    "urlencoded": {
+      "extended": true,
+      "limit": "100kb"
+    },
+    "cors": false,
+    "handleErrors": false
+  },
+  "legacyExplorer": false,
+  "EnableSwitchContext": true,
+  "kafka": {
+    "clientOpts": {
+      "kafkaHost": "kafka:9092",
+      "maxAsyncRequests": 50,
+      "connectRetryOptions": {
+        "retries": 1,
+        "factor": 1,
+        "minTimeout": 2000,
+        "maxTimeout": 6000
+      }
+    },
+    "producerOpts": {},
+    "topicPrefix": "fin_app"
+  }
+}

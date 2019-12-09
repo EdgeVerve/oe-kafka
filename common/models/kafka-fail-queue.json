@@ -1,0 +1,23 @@
+{
+    "name": "KafkaFailQueue",
+    "base": "BaseEntity",
+    "idInjection": true,
+    "properties": {
+      "topic": {
+        "type": "string"
+      },
+      "eventPayload": {
+        "type": "object"
+      },
+      "kafkaError": {
+        "type": "object"
+      }
+    },
+    "mixins": {
+      "KafkaMixin": false
+    },
+    "validations": [],
+    "relations": {},
+    "acls": [],
+    "methods": {}
+  }
