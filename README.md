@@ -157,7 +157,23 @@ The following example shows the minimum parameters required in this file:
        
             "clientOpts": {
             
-                "kafkaHost": "kafka:9092"
+                "kafkaHost" : "kafka:9092",
+                "connectTimeout" : 10000,
+                "requestTimeout" : 30000,
+                "autoConnect" : true,
+                "connectRetryOptions" :   {                // options of 'retry' npm module (https://www.npmjs.com/package/retry)
+                                          retries: 5,
+                                          factor: 3,
+                                          minTimeout: 1 * 1000,
+                                          maxTimeout: 60 * 1000,
+                                          randomize: true
+                                        },
+                "idleConnection" : 5 * 60 * 60,            // 5 min
+                "reconnectOnIdle" : true,
+                "maxAsyncRequests" : 10,
+                "sslOptions" : { rejectUnauthorized: false }, 
+                "sasl": { mechanism: 'plain', username: 'foo', password: 'bar' } 
+
             }, 
             
             "producerOpts": {
@@ -176,7 +192,8 @@ The following example shows the minimum parameters required in this file:
 </pre>
 
 Here, the value of `clientOpts` is an object having the same properties as the **KafkaClient** of the npm module [kafka-node](https://www.npmjs.com/package/kafka-node).
-Within the `clientOpts` object, only `kafkaHost` is mandatory. `kafkaHost` is of the form `<host>:<port>`
+Within the `clientOpts` object, only `kafkaHost` is mandatory. `kafkaHost` is of the form `<host>:<port>`. For explanations of the rest of the `clientOpts` parameters, see
+the documentation of the [kafka-node](https://www.npmjs.com/package/kafka-node) npm module.
 
 
 
