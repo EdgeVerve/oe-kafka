@@ -157,11 +157,11 @@ The following example shows the minimum parameters required in this file:
        
             "clientOpts": {
             
-                "kafkaHost" : "kafka:9092",
+                "kafkaHost" : "kafka:9092",             // Mandatory
                 "connectTimeout" : 10000,
                 "requestTimeout" : 30000,
                 "autoConnect" : true,
-                "connectRetryOptions" :   {                // options of 'retry' npm module (https://www.npmjs.com/package/retry)
+                "connectRetryOptions" :   {             // options of 'retry' npm module (https://www.npmjs.com/package/retry)
                                           retries: 5,
                                           factor: 3,
                                           minTimeout: 1 * 1000,
@@ -176,14 +176,14 @@ The following example shows the minimum parameters required in this file:
 
             }, 
             
-            "producerOpts": {
+            "producerOpts": {                   // Optional
             
                 "requireAcks": 1,
                 "ackTimeoutMs": 100,
                 "partitionerType": 2
             },
             
-            "topicPrefix": "oe-demo-app"
+            "topicPrefix": "oe-demo-app"        //  Mandatory
            
        }
        ...
