@@ -29,7 +29,7 @@
   },
   "scripts": {
     "pretest": "npm install --no-optional",
-    "test": "mocha test/test.js",
+    "test": "mocha test/test.js --exit",
     "lint": "eslint .",
     "fix-lint": "eslint --fix .",
     "grunt-cover": "grunt test-with-coverage"

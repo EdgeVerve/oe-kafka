@@ -1,0 +1,116 @@
+stages:
+  - pre-build
+  - pre-build-test
+  - build
+  - cleanup
+
+image: $REGISTRY/debian-node-oracle-docker
+variables:
+  REGISTRY: registry.${DOMAIN_NAME}
+
+before_script:
+  - export project=${CI_PROJECT_NAME//[^[:alnum:]]/}
+  - export group=${CI_PROJECT_NAMESPACE//[^[:alnum:]]/}
+  - export branch=${CI_BUILD_REF_NAME//[^[:alnum:]]/}
+  - export pipelineId=${CI_PIPELINE_ID//[^[:alnum:]]/}
+
+npminstall:
+  stage: pre-build
+  script:
+    - echo "Code style check done successfully"
+    - npm config set registry http://10.188.25.62:9002/
+    - time npm install --no-optional
+    - echo "Node Modules Installed"
+    - mkdir -p ./artifacts/${CI_PROJECT_NAME}/
+  artifacts:
+    untracked: true
+    expire_in: 2h
+    paths:
+      - node_modules/
+  tags:
+    - CEP_RUNNER
+
+
+mongotest:
+  stage: pre-build-test
+  script:
+    - echo 'Performing MongoDB Test'
+    - export no_proxy=$no_proxy,$HOSTNAME
+    - export NO_PROXY=$no_proxy,$HOSTNAME
+    - export LOGGER_CONFIG=\{\"levels\":\{\"default\":\"error\",\"bootJobScheduler\":\"debug\",\"jobScheduler\":\"debug\",\"oeJobScheduler\":\"debug\",\"jobRunner\":\"debug\",\"masterJobExecutor\":\"debug\",\"jobModule1\":\"info\",\"jobModule2\":\"info\",\"boot-cleanup\":\"debug\",\"job\":\"debug\",\"jobSchedulerTest\":\"debug\"\}\}
+    - export NODE_ENV=mongo
+    - export MONGO_HOST="10.73.53.144"
+    - export KAFKA_HOST_PORT="10.73.53.144:9092"
+    - export DB=mongo
+    - export DB=kafka
+    - export DB_NAME=${CI_PIPELINE_ID}_mongo
+    - npm config set registry http://10.188.25.62:9002/
+    - time npm install --no-optional
+    - npm run test
+  artifacts:
+    untracked: true
+    expire_in: 2h
+    paths:
+      - coverage/
+    when: on_failure
+  tags:
+    - CEP_RUNNER
+
+postgrestest:
+  stage: pre-build-test
+  script:
+    - echo 'Performing PostgreSQL Test'
+    - export no_proxy=$no_proxy,$HOSTNAME
+    - export NO_PROXY=$no_proxy,$HOSTNAME
+    - export LOGGER_CONFIG=\{\"levels\":\{\"default\":\"error\",\"bootJobScheduler\":\"debug\",\"jobScheduler\":\"debug\",\"oeJobScheduler\":\"debug\",\"jobRunner\":\"debug\",\"masterJobExecutor\":\"debug\",\"jobModule1\":\"info\",\"jobModule2\":\"info\",\"boot-cleanup\":\"debug\",\"job\":\"debug\",\"jobSchedulerTest\":\"debug\"\}\}
+    - export NODE_ENV=postgres
+    - export DB=postgres
+    - export POSTGRES_HOST="10.73.53.144"
+    - export DB_NAME=${CI_PIPELINE_ID}_pg
+    - export ENABLE_DS_AUTOUPDATE=true
+    - npm config set registry http://10.188.25.62:9002/
+    - time npm install --no-optional
+    - npm run test
+  tags:
+    - CEP_RUNNER    
+  tags:
+    - CEP_RUNNER
+    
+oracletest:
+  stage: pre-build-test
+  script:
+    - echo 'Performing Oracle Test'
+    - export no_proxy=$no_proxy,$HOSTNAME
+    - export NO_PROXY=$no_proxy,$HOSTNAME
+    - export LOGGER_CONFIG=\{\"levels\":\{\"default\":\"error\",\"bootJobScheduler\":\"debug\",\"jobScheduler\":\"debug\",\"oeJobScheduler\":\"debug\",\"jobRunner\":\"debug\",\"masterJobExecutor\":\"debug\",\"jobModule1\":\"info\",\"jobModule2\":\"info\",\"boot-cleanup\":\"debug\",\"job\":\"debug\",\"jobSchedulerTest\":\"debug\"\}\}
+    - export APP_TAG=oracle
+    - export NODE_ENV=oracle
+    - export ORACLE_HOST=10.73.53.144
+    - export ORACLE_SYSUSER=oeadmin
+    - export ORACLE_SYSPASSWORD=oeadmin
+    - export ORACLE_SID=ORCLCDB
+    - export DB_NAME=${CI_PIPELINE_ID}_pg
+    - export CI_PROJECT_NAMESPACE=${group}
+    - export ORACLE_USERNAME=${CI_PROJECT_NAMESPACE}"-"${CI_PROJECT_NAME}
+    - export ORACLE_USERNAME=$(echo $ORACLE_USERNAME | tr '[:lower:]' '[:upper:]')
+    - export ORACLE_PASSWORD=$(echo $CI_PROJECT_NAMESPACE | tr '[:upper:]' '[:lower:]')
+    - export ENABLE_DS_AUTOUPDATE=true
+    - echo "Oracle user details (username/password):"${ORACLE_USERNAME}"/"${ORACLE_PASSWORD}
+    - npm config set registry http://10.188.25.62:9002/
+    - npm install git+http://evgit/oecloud.io/oe-connector-oracle.git --no-optional
+    - npm install --no-optional
+    - npm install async --no-optional
+    - mv /oracledb node_modules/
+    - node test/oracle-utility.js
+    - npm run test
+  tags:
+    - CEP_RUNNER    
+
+
+lastcleanup:
+  stage: cleanup
+  script:
+    - echo "Finishing CI CD"
+  tags:
+    - CEP_RUNNER
+
