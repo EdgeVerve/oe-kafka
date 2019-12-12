@@ -12,10 +12,8 @@
     "port": 27017,
     "url": "mongodb://localhost:27017/oe-kafka-test",
     "database": "oe-kafka-test",
-    "password": "",
     "name": "db",
     "connector": "mongodb",
-    "user": "",
     "connectionTimeout": 500000
   }
 }
