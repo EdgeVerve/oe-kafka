@@ -7,7 +7,7 @@
 - [Setup](#Setup)
 - [Event Format](#Event Format)
 - [Configuration](#Configuration)
-
+- [Custom Suffix](#Custom Suffix)
 
 <a name="Need"></a>
 ## Need
@@ -205,7 +205,7 @@ the documentation of the [kafka-node](https://www.npmjs.com/package/kafka-node) 
 
 `topicPrefix` is used by **oe-kafka** as the prefix of the **Kafka** *topic* to which events are published. It is a mandatory field.
 
-
+<a name="Custom Suffix"></a>
 ## Custom suffix
 By default, the *topic* suffix is automatically set to the model name. Thus, for a model named **Contact**, the topic is calculated as `<options.topicPrefix>.<Model Name>`
 resulting in `oe-demo-app.Contact` as the *topic*
