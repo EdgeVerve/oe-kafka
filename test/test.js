@@ -91,7 +91,7 @@ producer.on('ready', function (err) {
 
 
 describe(chalk.blue('Kafka Mixin Test'), function (done) {
-  this.timeout(120000);
+  this.timeout(20000);
   before('waiting for boot scripts to complete', function (done) {
 
     app.on('test-start', function () {
