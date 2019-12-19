@@ -30,6 +30,9 @@ module.exports = function (Model) {
 };
 
 function after(ctx, next) {
+  if (ctx && ctx.options && ctx.options.kafkaEvent === true) {
+    return next();
+  }
   const modelSettings = ctx.Model.definition.settings;
 
   if (!modelSettings.mixins || !modelSettings.mixins.KafkaMixin || modelSettings.mixins.KafkaMixin === false) return next();
@@ -40,21 +43,21 @@ function after(ctx, next) {
 
   var topic = topicPrefix + '.' + topicSuffix;
 
-  var data = ctx.instance && ctx.instance.__data;
-  var id = ctx.instance.id;
+  var data = (ctx.instance && ctx.instance.__data) || ctx.data;
+  var id = (ctx.instance && ctx.instance.id) || data.id;
 
   var eventPayload =
-    {
-      'specversion': '1.0',
-      'type': ctx.Model.modelName,
-      'source': '',
-      'subject': '',
-      'id': id,
-      'time': new Date().toISOString(),
-      'operation': '',
-      'datacontenttype': 'application/json',
-      'data': JSON.stringify(data)
-    };
+  {
+    'specversion': '1.0',
+    'type': ctx.Model.modelName,
+    'source': '',
+    'subject': '',
+    'id': id,
+    'time': new Date().toISOString(),
+    'operation': '',
+    'datacontenttype': 'application/json',
+    'data': JSON.stringify(data)
+  };
 
 
   if (ctx.instance && (ctx.isNewInstance === true)) {                            // check for insert
@@ -68,7 +71,7 @@ function after(ctx, next) {
   if (oeKafkaClient.disabled === true) {
     console.log(oeKafkaClient.error);
     var KafkaFailQueue = loopback.findModel('KafkaFailQueue');
-    KafkaFailQueue.create({topic: topic, eventPayload: eventPayload, kafkaError: { message: oeKafkaClient.error.message} }, {}, function (e1, d1) {
+    KafkaFailQueue.create({ topic: topic, eventPayload: eventPayload, kafkaError: { message: oeKafkaClient.error.message } }, {}, function (e1, d1) {
       if (e1) console.log(e1);
     });
   } else {
@@ -77,7 +80,7 @@ function after(ctx, next) {
         console.error('Error while publishing to Kafka:', e.error && e.error.message);
         console.warn('Logging to KafkaFailQueue model');
         var KafkaFailQueue = loopback.findModel('KafkaFailQueue');
-        KafkaFailQueue.create({topic: e.topic, eventPayload: e.eventPayload, kafkaError: { message: e.error.message }  }, {}, function (e1, d1) {
+        KafkaFailQueue.create({ topic: e.topic, eventPayload: e.eventPayload, kafkaError: { message: e.error.message } }, {}, function (e1, d1) {
           if (e1) console.log(e1);
         });
       }

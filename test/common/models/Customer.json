@@ -1,7 +1,7 @@
 {
+  "strict": false,
   "name": "Customer",
   "base": "BaseEntity",
-  "idInjection": true,
   "properties": {
     "name": {
       "type": "string",

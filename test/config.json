@@ -33,6 +33,8 @@
       }
     },
     "producerOpts": {},
-    "topicPrefix": "fin_app"
+    "consumerOpts": { "autoCommit": true },
+    "topicPrefix": "fin_app",
+    "mappings": {"Customer_Topic": "Customer", "Customer2_Topic": "Customer2"}
   }
 }
