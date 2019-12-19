@@ -27,10 +27,10 @@ module.exports = function GruntConfig(grunt) {
         options: {
           timeout: 60000,
           check: {
-            lines: 75,
-            statements: 75,
-            branches: 60,
-            functions: 80
+            lines: 70,
+            statements: 70,
+            branches: 70,
+            functions: 70
           },
           reportFormats: ['lcov']
         }

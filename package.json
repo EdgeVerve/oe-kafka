@@ -19,7 +19,7 @@
     "oe-cloud"
   ],
   "dependencies": {
-    "kafka-node": "^5.0.0"
+    "kafka-node": "5.0.0"
   },
   "devDependencies": {
     "babel-eslint": "7.2.3",

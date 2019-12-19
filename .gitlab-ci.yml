@@ -16,8 +16,11 @@ before_script:
   - export project=${CI_PROJECT_NAME//[^[:alnum:]]/}
   - export group=${CI_PROJECT_NAMESPACE//[^[:alnum:]]/}
   - export branch=${CI_BUILD_REF_NAME//[^[:alnum:]]/}
-  - export no_proxy=$no_proxy,$HOSTNAME
-  - export NO_PROXY=$NO_PROXY,$HOSTNAME
+  - export no_proxy=${no_proxy},${HOSTNAME}
+  - export NO_PROXY=${NO_PROXY},${HOSTNAME}
+
+  - npm config set progress false
+  - npm config set registry ${NPM_REGISTRY}
 
 npminstall:
   stage: pre-build
@@ -26,8 +29,6 @@ npminstall:
     - export status_eslint=0
     - export exit_status=0
     - export status_vulnerabilities=0
-    - npm config set progress false
-    - npm config set registry ${NPM_REGISTRY}
     #- npm config set registry https://registry.npmjs.org/
     - time npm install eslint babel-eslint --no-optional
     - if npm run lint; then export status_eslint=0; else export status_eslint=1; fi
@@ -60,11 +61,9 @@ mongotest:
     # - export DB=mongo
     # - export DB=kafka
     - export DB_NAME=${CI_JOB_ID}_mongo
-    - npm config set progress false
-    - npm config set registry ${NPM_REGISTRY}
     #- npm config set registry https://registry.npmjs.org/
     - time npm install --no-optional
-    - npm run test
+    - npm run grunt-cover
   artifacts:
     expire_in: 2h
     paths:
@@ -84,11 +83,9 @@ postgrestest:
     # - export DB=postgres
     - export ENABLE_DS_AUTOUPDATE=true
     - export DB_NAME=${CI_JOB_ID}_postgres
-    - npm config set progress false
-    - npm config set registry ${NPM_REGISTRY}
     #- npm config set registry https://registry.npmjs.org/
     - time npm install --no-optional
-    - npm run test
+    - npm run grunt-cover
   tags:
     - CEP_RUNNER
     
@@ -111,15 +108,13 @@ oracletest:
     - export ORACLE_PASSWORD=$(echo $CI_PROJECT_NAMESPACE | tr '[:upper:]' '[:lower:]')
     - export ENABLE_DS_AUTOUPDATE=true
     - echo "Oracle user details (username/password):"${ORACLE_USERNAME}"/"${ORACLE_PASSWORD}
-    - npm config set progress false
-    - npm config set registry ${NPM_REGISTRY}
     #- npm config set registry https://registry.npmjs.org/
     - npm install git+http://evgit/oecloud.io/oe-connector-oracle.git --no-optional
     - npm install --no-optional
     - npm install async --no-optional
     - mv /oracledb node_modules/
     - node test/oracle-utility.js
-    - npm run test
+    - npm run grunt-cover
   tags:
     - CEP_RUNNER    
 
