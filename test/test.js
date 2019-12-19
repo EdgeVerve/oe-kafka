@@ -40,6 +40,7 @@ producer.on('error', function (err) {
   process.exit(1);
 });
 producer.on('ready', function (err) {
+  console.log('producer ready for tests');
   var topic1 = { topic: 'fin_app.Customer', partitions: 1, replicationFactor: 1 };
   var topic2 = { topic: 'fin_app.CUST2', partitions: 1, replicationFactor: 1 };
   var topic3 = { topic: 'fin_app.Customer_Topic', partitions: 1, replicationFactor: 1 };
@@ -50,7 +51,7 @@ producer.on('ready', function (err) {
       console.log(err);
       process.exit(1);
     } else {
-
+      console.log('created test topics');
       consumer = new Consumer(
         client,
         [
@@ -67,12 +68,13 @@ producer.on('ready', function (err) {
         console.log(err);
         process.exit(1);
       });
-
+      console.log('booting oeCloud ...');
       oecloud.boot(__dirname, function (err) {
         if (err) {
           console.log(err);
           process.exit(1);
         }
+        console.log('...booted oeCloud');
         oecloud.start(function (a, b) {
           console.log(a, b)
         });
@@ -89,10 +91,12 @@ producer.on('ready', function (err) {
 
 
 describe(chalk.blue('Kafka Mixin Test'), function (done) {
-  this.timeout(20000);
+  this.timeout(120000);
   before('waiting for boot scripts to complete', function (done) {
 
     app.on('test-start', function () {
+      console.log('starting tests ...');
+
       customer = loopback.findModel("Customer");
       customer2 = loopback.findModel("Customer2");
       customer3 = loopback.findModel("Customer3");
@@ -119,6 +123,7 @@ describe(chalk.blue('Kafka Mixin Test'), function (done) {
 
 
   it('t0 - inserting into model without KafkaMixin configured should neither publish to Kafka nor KafkaFailQueue', function (done) {
+    console.log('starting t0 ...');
 
     var item1 = {
       'name': 'Customer D',
@@ -146,6 +151,7 @@ describe(chalk.blue('Kafka Mixin Test'), function (done) {
 
 
   it('t1 - inserting into model with KafkaMixin configured should publish to Kafka', function (done) {
+    console.log('starting t1 ...');
 
     var item1 = {
       'name': 'Customer A',
@@ -168,6 +174,7 @@ describe(chalk.blue('Kafka Mixin Test'), function (done) {
 
 
   it('t2 - updating model instance using inst.save() should publish to Kafka', function (done) {
+    console.log('starting t2 ...');
 
     lsnr = function lsnr(msg) {
       expect(msg.topic).to.equal("fin_app.Customer");
@@ -184,6 +191,7 @@ describe(chalk.blue('Kafka Mixin Test'), function (done) {
   });
 
   it('t3 - updating model instance using inst.updateAttributes() should publish to Kafka', function (done) {
+    console.log('starting t3 ...');
 
     lsnr = function lsnr(msg) {
       expect(msg.topic).to.equal("fin_app.Customer");
@@ -203,6 +211,7 @@ describe(chalk.blue('Kafka Mixin Test'), function (done) {
   });
 
   it('t4 - updating model instance using inst.updateAttribute() should publish to Kafka', function (done) {
+    console.log('starting t4 ...');
 
     lsnr = function lsnr(msg) {
       expect(msg.topic).to.equal("fin_app.Customer");
@@ -219,6 +228,7 @@ describe(chalk.blue('Kafka Mixin Test'), function (done) {
 
 
   it('t5 - deleting model instance should publish to Kafka', function (done) {
+    console.log('starting t5 ...');
 
     lsnr = function lsnr(msg) {
       expect(msg.topic).to.equal("fin_app.Customer");
@@ -235,6 +245,7 @@ describe(chalk.blue('Kafka Mixin Test'), function (done) {
 
 
   it('t6 - inserting into model with topic specified in model definition should publish to the specified topic', function (done) {
+    console.log('starting t6 ...');
 
     var item2 = {
       'name': 'Customer B',
@@ -257,6 +268,8 @@ describe(chalk.blue('Kafka Mixin Test'), function (done) {
 
 
   it('t7 - failure to publish to Kafka should result in insertion to KafkaFailQueue model', function (done) {
+    console.log('starting t7 ...');
+
     var item1 = {
       'name': 'Customer C',
       'age': 50
@@ -291,6 +304,8 @@ describe(chalk.blue('Kafka Mixin Test'), function (done) {
 
 
   it('t8 - sending a CREATE message to Kafka should create an instance of a Model', function (done) {
+    console.log('starting t8 ...');
+
     var item1 = {
       'name': 'Test 8',
       'age': 42
@@ -343,6 +358,8 @@ describe(chalk.blue('Kafka Mixin Test'), function (done) {
 
 
   it('t9 - sending a UPDATE message to Kafka should update an instance of a Model', function (done) {
+    console.log('starting t9 ...');
+
     var item1 = {
       'name': 'Test 9',
       'age': 43,
@@ -395,6 +412,7 @@ describe(chalk.blue('Kafka Mixin Test'), function (done) {
   });
 
   it('t10 - sending a DELETE message to Kafka should delete an instance of a Model', function (done) {
+    console.log('starting t10 ...');
 
     var eventPayload =
     {
