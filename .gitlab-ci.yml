@@ -98,6 +98,7 @@ oracletest:
   script:
     - echo 'Performing Oracle Test'
     - export LOGGER_CONFIG=\{\"levels\":\{\"default\":\"error\",\"bootJobScheduler\":\"debug\",\"jobScheduler\":\"debug\",\"oeJobScheduler\":\"debug\",\"jobRunner\":\"debug\",\"masterJobExecutor\":\"debug\",\"jobModule1\":\"info\",\"jobModule2\":\"info\",\"boot-cleanup\":\"debug\",\"job\":\"debug\",\"jobSchedulerTest\":\"debug\"\}\}
+    - export KAFKA_HOST_PORT="10.73.53.144:9092"
     - export NODE_ENV=oracle
     - export ORACLE_HOST=10.73.53.144
     - export ORACLE_SYSUSER=oeadmin
