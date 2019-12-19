@@ -32,7 +32,7 @@ var id;
 
 console.log('Creating kafka client for tests');
 client = new kafka.KafkaClient(kafkaOptions.clientOpts);
-
+console.log('Creating producer for tests');
 producer = new Producer(client, kafkaOptions.producerOpts || {});
 producer.on('error', function (err) {
   console.error('Producer Error connecting to Kafka Client:');
@@ -457,5 +457,59 @@ describe(chalk.blue('Kafka Mixin Test'), function (done) {
     });
 
   });
+
+  it('t11 - sending another CREATE message to Kafka should create an instance of another Model', function (done) {
+    console.log('starting t11 ...');
+
+    var item1 = {
+      'name': 'Test 11',
+      'age': 44
+    };
+
+    var eventPayload =
+    {
+      'specversion': '1.0',
+      'type': 'Customer2',
+      'source': '',
+      'subject': '',
+      'id': '',
+      'time': new Date().toISOString(),
+      'operation': 'CREATE',
+      'datacontenttype': 'application/json',
+      'data': item1
+    };
+
+
+    var produceRequest = {
+      topic: 'fin_app.Customer2_Topic',
+      messages: JSON.stringify(eventPayload),
+      key: '456',
+      partition: 0,
+      attributes: 0 // 0: No compression, 1: Compress using GZip, 2: Compress using snappy. default: 0
+    };
+
+    afterSave = function afterSave(ctx, next) {
+      expect(ctx.instance).to.be.defined;
+      expect(ctx.instance.id).to.be.defined;
+      id = ctx.instance.id.toString();
+      expect(ctx.isNewInstance).to.be.true;
+      expect(ctx.instance.name).to.equal('Test 11');
+      expect(ctx.instance.age).to.equal(44);
+      next();
+      done();
+    }
+
+    customer2.evObserve('after save', afterSave);
+
+    producer.send([produceRequest], function (err, ack) {
+      if (!err) console.log('Sent another create message to Kafka Successfully', ack);
+      else {
+        done(err);
+      }
+    });
+
+  });
+
+
 });
 

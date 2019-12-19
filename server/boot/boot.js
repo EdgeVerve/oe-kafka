@@ -38,18 +38,15 @@ module.exports = function (app, cb) {
             ctx.kafkaEvent = true;
             if (payload.operation === 'CREATE') {
               Model.create(data, ctx, function (err, data) {
-                if (err) console.log('****************** Could not create instance of ' + modelName + 'with data from Kafka: ' + payload.data + ' ' + err.message);
-                else console.log('****************** Successfully CREATED');
+                if (err) console.log('Could not create instance of ' + modelName + 'with data from Kafka: ' + payload.data + ' ' + err.message);
               });
             } else if (payload.operation === 'UPDATE') {
               Model.upsert(data, ctx, function (err, data) {
-                if (err) console.log('****************** Could not update instance of ' + modelName + 'with data from Kafka: ' + payload.data + ' ' + err.message);
-                else console.log('****************** Successfully UPDATED');
+                if (err) console.log('Could not update instance of ' + modelName + 'with data from Kafka: ' + payload.data + ' ' + err.message);
               });
             } else if (payload.operation === 'DELETE') {
               Model.remove({ id: data }, ctx, function (err, data) {
-                if (err) console.log('****************** Could not delete instance of ' + modelName + '. Data from Kafka: ' + payload.data + ' ' + err.message);
-                else console.log('****************** Successfully DELETED');
+                if (err) console.log('Could not delete instance of ' + modelName + '. Data from Kafka: ' + payload.data + ' ' + err.message);
               });
             }
           } catch (e) {
