@@ -24,7 +24,6 @@ var customer;
 var customer2;
 var inst;
 var kafkaOptions = oecloud.options.config.kafka;
-var consumer;
 var lsnr;
 var afterSave;
 var KafkaFailQueue;
