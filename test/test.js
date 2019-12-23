@@ -24,6 +24,8 @@ var customer;
 var customer2;
 var inst;
 var kafkaOptions = oecloud.options.config.kafka;
+var dbType = oecloud.options.dataSources.db.connector;
+kafkaOptions.topicPrefix = dbType + '.' + kafkaOptions.topicPrefix
 var lsnr;
 var afterSave;
 var KafkaFailQueue;
@@ -40,11 +42,11 @@ producer.on('error', function (err) {
 });
 producer.on('ready', function (err) {
   console.log('producer ready for tests');
-  var topic1 = { topic: 'fin_app.Customer', partitions: 1, replicationFactor: 1 };
-  var topic2 = { topic: 'fin_app.CUST2', partitions: 1, replicationFactor: 1 };
-  var topic3 = { topic: 'fin_app.Customer_Topic', partitions: 1, replicationFactor: 1 };
-  var topic4 = { topic: 'fin_app.Customer2_Topic', partitions: 1, replicationFactor: 1 };
-  var topic5 = { topic: 'fin_app.all_models', partitions: 1, replicationFactor: 1 };
+  var topic1 = { topic: dbType + '.' + 'fin_app.Customer', partitions: 1, replicationFactor: 1 };
+  var topic2 = { topic: dbType + '.' + 'fin_app.CUST2', partitions: 1, replicationFactor: 1 };
+  var topic3 = { topic: dbType + '.' + 'fin_app.Customer_Topic', partitions: 1, replicationFactor: 1 };
+  var topic4 = { topic: dbType + '.' + 'fin_app.Customer2_Topic', partitions: 1, replicationFactor: 1 };
+  var topic5 = { topic: dbType + '.' + 'fin_app.all_models', partitions: 1, replicationFactor: 1 };
 
   producer.createTopics([topic1, topic2, topic3, topic4, topic5], function (err, ack) {
     if(err) {
@@ -55,8 +57,8 @@ producer.on('ready', function (err) {
       consumer = new Consumer(
         client,
         [
-          { topic: "fin_app.Customer", partition: 0 },
-          { topic: "fin_app.CUST2", partition: 0 }
+          { topic: dbType + '.' + 'fin_app.Customer', partition: 0 },
+          { topic: dbType + '.' + 'fin_app.CUST2', partition: 0 }
         ],
         {
           autoCommit: true,
@@ -160,7 +162,7 @@ describe(chalk.blue('Kafka Mixin Test'), function (done) {
     };
 
     lsnr = function lsnr(msg) {
-      expect(msg.topic).to.equal("fin_app.Customer");
+      expect(msg.topic).to.equal(dbType + '.' + 'fin_app.Customer');
       expect(item1.name).to.equal(JSON.parse(JSON.parse(msg.value).data).name);
       expect(item1.age).to.equal(JSON.parse(JSON.parse(msg.value).data).age);
       done();
@@ -178,7 +180,7 @@ describe(chalk.blue('Kafka Mixin Test'), function (done) {
     console.log('starting t2 ...');
 
     lsnr = function lsnr(msg) {
-      expect(msg.topic).to.equal("fin_app.Customer");
+      expect(msg.topic).to.equal(dbType + '.' + 'fin_app.Customer');
       expect(JSON.parse(JSON.parse(msg.value).data).age).to.equal(15);
       done();
     }
@@ -195,7 +197,7 @@ describe(chalk.blue('Kafka Mixin Test'), function (done) {
     console.log('starting t3 ...');
 
     lsnr = function lsnr(msg) {
-      expect(msg.topic).to.equal("fin_app.Customer");
+      expect(msg.topic).to.equal(dbType + '.' + 'fin_app.Customer');
       expect(JSON.parse(JSON.parse(msg.value).data).age).to.equal(17);
       done();
     }
@@ -215,7 +217,7 @@ describe(chalk.blue('Kafka Mixin Test'), function (done) {
     console.log('starting t4 ...');
 
     lsnr = function lsnr(msg) {
-      expect(msg.topic).to.equal("fin_app.Customer");
+      expect(msg.topic).to.equal(dbType + '.' + 'fin_app.Customer');
       expect(JSON.parse(JSON.parse(msg.value).data).name).to.equal("CustomerA1");
       done();
     }
@@ -232,7 +234,7 @@ describe(chalk.blue('Kafka Mixin Test'), function (done) {
     console.log('starting t5 ...');
 
     lsnr = function lsnr(msg) {
-      expect(msg.topic).to.equal("fin_app.Customer");
+      expect(msg.topic).to.equal(dbType + '.' + 'fin_app.Customer');
       expect(JSON.parse(JSON.parse(msg.value).data).name).to.equal("CustomerA1");
       expect(JSON.parse(JSON.parse(msg.value).data).age).to.equal(17);
       done();
@@ -254,7 +256,7 @@ describe(chalk.blue('Kafka Mixin Test'), function (done) {
     };
 
     lsnr = function lsnr(msg) {
-      expect(msg.topic).to.equal("fin_app.CUST2");
+      expect(msg.topic).to.equal(dbType + '.' + 'fin_app.CUST2');
       expect(item2.name).to.equal(JSON.parse(JSON.parse(msg.value).data).name);
       expect(item2.age).to.equal(JSON.parse(JSON.parse(msg.value).data).age);
       done();
@@ -282,7 +284,7 @@ describe(chalk.blue('Kafka Mixin Test'), function (done) {
 
     afterSave = function afterSave(ctx, next) {
       expect(ctx.instance).to.be.defined;
-      expect(ctx.instance.topic).to.equal("fin_app.Customer3");
+      expect(ctx.instance.topic).to.equal(dbType + '.' + 'fin_app.Customer3');
       expect(ctx.instance.eventPayload).to.be.defined;
       expect(ctx.instance.eventPayload.operation).to.equal("CREATE");
       expect(ctx.instance.eventPayload.type).to.equal("Customer3");
@@ -327,7 +329,7 @@ describe(chalk.blue('Kafka Mixin Test'), function (done) {
 
 
     var produceRequest = {
-      topic: 'fin_app.Customer_Topic',
+      topic: dbType + '.' + 'fin_app.Customer_Topic',
       messages: JSON.stringify(eventPayload),
       key: '123',
       partition: 0,
@@ -383,7 +385,7 @@ describe(chalk.blue('Kafka Mixin Test'), function (done) {
 
 
     var produceRequest = {
-      topic: 'fin_app.Customer_Topic',
+      topic: dbType + '.' + 'fin_app.Customer_Topic',
       messages: JSON.stringify(eventPayload),
       key: id,
       partition: 0,
@@ -430,7 +432,7 @@ describe(chalk.blue('Kafka Mixin Test'), function (done) {
 
 
     var produceRequest = {
-      topic: 'fin_app.Customer_Topic',
+      topic: dbType + '.' + 'fin_app.Customer_Topic',
       messages: JSON.stringify(eventPayload),
       key: id,
       partition: 0,
@@ -482,7 +484,7 @@ describe(chalk.blue('Kafka Mixin Test'), function (done) {
 
 
     var produceRequest = {
-      topic: 'fin_app.Customer2_Topic',
+      topic: dbType + '.' + 'fin_app.Customer2_Topic',
       messages: JSON.stringify(eventPayload),
       key: '456',
       partition: 0,
@@ -535,7 +537,7 @@ describe(chalk.blue('Kafka Mixin Test'), function (done) {
 
 
     var produceRequest = {
-      topic: 'fin_app.all_models',
+      topic: dbType + '.' + 'fin_app.all_models',
       messages: JSON.stringify(eventPayload),
       key: '789',
       partition: 0,
