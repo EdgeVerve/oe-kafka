@@ -47,9 +47,9 @@ The application Models and *topics* for which this feature applies, is configura
 
 <a name="Setup"></a>
 ## Setup
-To get the *Kafka* feature, the following changes need to be done in the *oe-Cloud* based application:
+To get the *Kafka* features, the following changes need to be done in the *oe-Cloud* based application:
 
-1. This (**oe-job-scheduler**) module needs to be added as application  ``package.json`` dependency.
+1. This (**oe-kafka**) module needs to be added as application  ``package.json`` dependency.
 2. The above modules need to be added to the `server/app-list.json` file in the app.
 
 
@@ -93,10 +93,12 @@ The code snippets below show how steps 1 and 2 can be done:
 ]
 </pre>
 
-Note the new app-list parameter `noBaseEntityAttach`. Setting this to `true` prevents this mixin from being applied to *BaseEntity* Model, 
-and thus preventing it being applied to all derived Models by default.
+Note the new app-list parameter `noBaseEntityAttach`. This setting affects the **Kafka Publisher** feature only. 
 
-In this scenario, the models that need the Kafka feature should declare the KafkaMixin explicitly as shown below, in bold:
+Setting this to `true` prevents the **KafkaMixin** mixin, hence the **Kafka Publisher** feature from being applied to *BaseEntity* Model, 
+and thus preventing this feature from being applied to all BaseEntity-derived Models by default.
+
+In this scenario, the models that need the **Kafka Publisher** feature should declare the **KafkaMixin** explicitly as shown below, in bold:
 
 **common/models/contact.json**  (Relevant section in **bold**):
 <pre>
@@ -123,9 +125,10 @@ In this scenario, the models that need the Kafka feature should declare the Kafk
 ## Event Format
 
 The **oe-kafka** module uses the [CloudEvent v1.0](https://github.com/cloudevents/spec/blob/master/spec.md) specification as the format of data 
-that is published to the **Kafka** *topic*.
+that is published to the **Kafka** *topic* when using the **Kafka Publisher** feature. This is the same format that is expected by **oe-kafka**
+when using the **Kafka Subscriber** feature as well.
 
-An example of an event published to **Kafka** in *CloudEvent* format is as follows:
+An example of an event published/subscribed to/from **Kafka** in *CloudEvent* format is as follows:
 
 
 **Example CloudEvent message**
@@ -147,7 +150,7 @@ An example of an event published to **Kafka** in *CloudEvent* format is as follo
 
 <a name="Configuration"></a>
 ## Configuration
-The *oe-kafka* module can be configured via the `server/config.json` file. 
+The *oe-kafka* module features can be configured via the `server/config.json` file. 
 The following example shows the minimum parameters required in this file:
 
 
@@ -187,8 +190,16 @@ The following example shows the minimum parameters required in this file:
                 "partitionerType": 2
             },
             
-            "topicPrefix": "oe-demo-app"        //  Mandatory
+            "topicPrefix": "oe-demo-app",       //  Mandatory
            
+            "subscriber": {                     // Optional
+                "disabled": false,
+                "topicSuffix": "all_models",
+                "mappings": {
+                    "Customer_Topic": "Customer", 
+                    "Customer2_Topic": "Customer2"
+                }
+            }
        }
        ...
        ...
@@ -209,9 +220,17 @@ the documentation of the [kafka-node](https://www.npmjs.com/package/kafka-node) 
 
 `topicPrefix` is used by **oe-kafka** as the prefix of the **Kafka** *topic* to which events are published. It is a mandatory field.
 
+`subscriber` is an object with the following keys - 
+
+- `disabled` - Optional boolean indicating whether the **Kafka Subscriber** feature is disabled or not. Default is `false` (feature is enabled)
+- `topicSuffix` - Optional String used as a *suffix* to arrive at a default topic to receive *Kafka* messages. Any message received on this *topic*, in the [Event Format](#Event Format) will be examined for `msg.value.type` to see if it is a valid model name. If so, the operation specified in `msg.value.operation` would be performed on the model using the data in `msg.value.data`
+- `mappings` - Optional Object whose **keys** are *topics* to subscribe to and **values** the name of the Model which needs to be created/updated or deleted
+when a suitable message is received on the corresponding **topic**. The expected message format and interpretation is the same as above.
+
+
 <a name="Custom Suffix"></a>
 ## Custom suffix
-By default, the *topic* suffix is automatically set to the model name. Thus, for a model named **Contact**, the topic is calculated as `<options.topicPrefix>.<Model Name>`
+By default, for the **Kafka Publisher** feature, the *topic* suffix is automatically set to the model name. Thus, for a model named **Contact**, the topic is calculated as `<options.topicPrefix>.<Model Name>`
 resulting in `oe-demo-app.Contact` as the *topic*
 
 However, the *topic* suffix can be changed on a per Model basis, by specifying the same in the Model Definition's **KafkaMixin** *options*, as follows:
