@@ -15,33 +15,50 @@ There is thus a need for Finacle-oeCloud apps to also be able to use Kafka as an
 
 Specifically, the following requirements are to be met:
 
-1. Kafka Publisher: It should be possible for an oeCloud application to publish messages to a Kafka topic whenever a create, update or delete event occurs on application models.
-2. Kafka Subscriber: It should be possible for an oeCloud application to create, update or delete application model instances whenever appropriate Kafka messages are received. 
+1. **Kafka Publisher**: It should be possible for an oeCloud application to publish messages to a Kafka topic whenever a create, update or delete event occurs on application models.
+2. **Kafka Subscriber**: It should be possible for an oeCloud application to create, update or delete application model instances whenever appropriate Kafka messages are received. 
 
 <a name="Implementation"></a>
 ## Implementation
 The **oe-kafka** module provides the infrastructure for catering to the above need. It is implemented as an **app-list**
 module for **oe-Cloud** based applications. This module further provides a *oeCloud* **mixin** (**KafkaMixin**), a boot script, and a **Model** (**KafkaFailQueue**).
 
+
+The mixin is named **KafkaMixin** and it provides the *Kafka Publisher* feature.
+
+The boot script in the *oe-kafka* module provides   the **Kafka Subscriber** feature.
+
+The two features can work independent of each other but share some [Configuration](#Configuration) options.
+
 ### Kafka Publisher
+
 It provides the ability to automatically publish *Create*, *Update* and *Delete* operation data to a configured **Kafka** *topic*. The *topic* is composed of a
-prefix and a suffix, concatenated by a period (.). Thus the *topic* is of the form `<PREFIX>.<SUFFIX>`. 
+*prefix* and a *suffix*, concatenated by a period (.). Thus the *topic* is of the form `<PREFIX>.<SUFFIX>`. 
 
 
 The *prefix* is configurable in the application's **config.json**, while the *suffix* is automatically set to the **Model Name** by default. 
-The *suffix* may be overridden at the model level through mixin properties.
+The *suffix* may be overridden at the model level through **KafkaMixin** properties.
 
 
-The application Models for which this feature applies, is configurable.
+The application Models for which this feature applies, is configurable. The application may choose to apply the **Kafka Publisher** feature to all models of the 
+application, which is the default behavior for all app Models derived from `BaseEntity.`
+
+However, this default can be turned off using the `noBaseEntityAttach` flag in `app-list.json`. 
+After this, **KafkaMixin** needs to be explicitly attached to models that need the **Kafka Publisher** feature.
 
 
 Failure to publish to Kafka Topic results in the event being logged to an error queue Model, namely **KafkaFailQueue**.
 
 
 ### Kafka Subscriber
-It provides the ability to automatically *Create*, *Update* and *Delete* Model instances whenever appropriate messages are received on a configured **Kafka** *topic*. 
+It provides the ability to automatically *Create*, *Update* and *Delete* Model instances whenever appropriate messages are received on a configured Kafka topic. 
 
-The application Models and *topics* for which this feature applies, is configurable in the application's **config.json**.
+There are 2 ways to configure the *topic* for this feature - 
+1. Have a common topic for receiving Kafka messages - this works for all Models, i.e., any model instance can be created/updated/deleted if the appropriate message is received on this common topic.
+2. Have Model-specific topics for receiving Kafka messages - this works for only the Models which are specified as part of the topic-model mapping.
+
+Both the above configurations are done via **config.json**. These configurations can both exist simultaneously, in which case, messages may be sent to either the default topic 
+or the topics specified as part of the topic-model mapping.
 
 
 
