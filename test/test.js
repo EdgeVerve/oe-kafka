@@ -44,8 +44,9 @@ producer.on('ready', function (err) {
   var topic2 = { topic: 'fin_app.CUST2', partitions: 1, replicationFactor: 1 };
   var topic3 = { topic: 'fin_app.Customer_Topic', partitions: 1, replicationFactor: 1 };
   var topic4 = { topic: 'fin_app.Customer2_Topic', partitions: 1, replicationFactor: 1 };
+  var topic5 = { topic: 'fin_app.all_models', partitions: 1, replicationFactor: 1 };
 
-  producer.createTopics([topic1, topic2, topic3, topic4], function (err, ack) {
+  producer.createTopics([topic1, topic2, topic3, topic4, topic5], function (err, ack) {
     if(err) {
       console.log(err);
       process.exit(1);
@@ -115,6 +116,7 @@ describe(chalk.blue('Kafka Mixin Test'), function (done) {
     if (afterSave) {
       KafkaFailQueue.evRemoveObserver("after save", afterSave);
       customer.evRemoveObserver("after save", afterSave);
+      customer2.evRemoveObserver("after save", afterSave);
     }
     done();
   });
@@ -502,6 +504,59 @@ describe(chalk.blue('Kafka Mixin Test'), function (done) {
 
     producer.send([produceRequest], function (err, ack) {
       if (!err) console.log('Sent another create message to Kafka Successfully', ack);
+      else {
+        done(err);
+      }
+    });
+
+  });
+
+
+  it('t12 - sending yet another CREATE message to Kafka common topic should create an instance of another Model', function (done) {
+    console.log('starting t11 ...');
+
+    var item1 = {
+      'name': 'Test 12',
+      'age': 55
+    };
+
+    var eventPayload =
+    {
+      'specversion': '1.0',
+      'type': 'Customer2',
+      'source': '',
+      'subject': '',
+      'id': '',
+      'time': new Date().toISOString(),
+      'operation': 'CREATE',
+      'datacontenttype': 'application/json',
+      'data': item1
+    };
+
+
+    var produceRequest = {
+      topic: 'fin_app.all_models',
+      messages: JSON.stringify(eventPayload),
+      key: '789',
+      partition: 0,
+      attributes: 0 // 0: No compression, 1: Compress using GZip, 2: Compress using snappy. default: 0
+    };
+
+    afterSave = function afterSave(ctx, next) {
+      expect(ctx.instance).to.be.defined;
+      expect(ctx.instance.id).to.be.defined;
+      id = ctx.instance.id.toString();
+      expect(ctx.isNewInstance).to.be.true;
+      expect(ctx.instance.name).to.equal('Test 12');
+      expect(ctx.instance.age).to.equal(55);
+      next();
+      done();
+    }
+
+    customer2.evObserve('after save', afterSave);
+
+    producer.send([produceRequest], function (err, ack) {
+      if (!err) console.log('Sent yet another create message to Kafka Successfully', ack);
       else {
         done(err);
       }

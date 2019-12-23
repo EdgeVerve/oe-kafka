@@ -35,6 +35,10 @@
     "producerOpts": {},
     "consumerOpts": { "autoCommit": true },
     "topicPrefix": "fin_app",
-    "mappings": {"Customer_Topic": "Customer", "Customer2_Topic": "Customer2"}
+    "subscriber": {
+      "disabled": false,
+      "topicSuffix": "all_models",
+      "mappings": {"Customer_Topic": "Customer", "Customer2_Topic": "Customer2"}
+    }
   }
 }
