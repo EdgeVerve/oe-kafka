@@ -46,6 +46,7 @@ function after(ctx, next) {
   var data = (ctx.instance && ctx.instance.__data) || ctx.data;
   var id = (ctx.instance && ctx.instance.id) || (data && data.id);
   var op = '';
+  /* istanbul ignore if */
   if (!id) {
     id = (ctx.where && ctx.where.and && ctx.where.and.length > 0 && ctx.where.and[0].and && ctx.where.and[0].and.length > 0 && ctx.where.and[0].and[0].and && ctx.where.and[0].and[0].and.length > 0 && ctx.where.and[0].and[0].and[0].id && ctx.where.and[0].and[0].and[0].id.toString());
     if (id) {
