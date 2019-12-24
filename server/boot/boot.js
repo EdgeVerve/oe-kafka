@@ -40,7 +40,7 @@ module.exports = function (app, cb) {
     try {
       payload = JSON.parse(msg.value);
     } catch (e) {
-      console.log('Error parsing value in Kafka msg: ' + msg.value + ': ' + e.message);
+      console.log('Error parsing value in Kafka msg: ' + msg.value + ': ' + e + ': msg received: ' + msg);
     }
 
     /* istanbul ignore if */
@@ -51,15 +51,16 @@ module.exports = function (app, cb) {
       var Model = loopback.findModel(modelName);
       if (Model) {
         var data;
-        if (typeof data === 'string') {
+        if (typeof payload.data === 'string') {
           try {
-            data = JSON.parse(data);
+            data = JSON.parse(payload.data);
           } catch (e) {
-            console.warn('Could not parse data in payload: ' + payload.data + ' ' + e);
+            console.warn('Could not parse data in payload: ' + payload.data + ' ' + e + ': Payload received: ' + payload);
           }
         } else {
           data = payload.data;
         }
+        /* istanbul ignore if */
         if (!data) return;
         var ctx = payload.ctx || {};
         ctx.kafkaEvent = true;
@@ -75,19 +76,21 @@ module.exports = function (app, cb) {
               else console.log('Kafka: Successfully UPDATED ' + modelName + ' with id ' + data.id);
             });
           } else if (payload.operation === 'DELETE') {
-            Model.remove({ id: data }, ctx, function (err, dt) {
+            Model.remove({ id: data.id }, ctx, function (err, dt) {
               if (err) console.log('Could not delete instance of ' + modelName + '. Data from Kafka: ' + payload.data + ' ' + err.message);
-              else console.log('Kafka: Successfully DELETED ' + modelName + ' with id ' + data);
+              else console.log('Kafka: Successfully DELETED ' + modelName + ' with id ' + data.id);
             });
+          } else {
+            console.warn('Kafka: Could not perform invalid operation: ' + payload.operation + ': Payload received: ' + payload);
           }
         } catch (e) {
-          console.warn('Could not parse data in payload: ' + payload.data);
+          console.warn('Kafka: Could not ' + payload.operation + ': Payload received: ' + payload + ': Error: ' + e);
         }
       } else {
-        console.warn('Model ' + modelName + ' not found in application');
+        console.warn('Model ' + modelName + ' not found in application' + ': Payload received: ' + payload);
       }
     } else {
-      console.warn('modelName not found (payload.type is null or undefined) for topic ' + msg.topic);
+      console.warn('modelName not found (payload.type is null or undefined) for topic ' + msg.topic + ': Payload received: ' + payload);
     }
   });
 };

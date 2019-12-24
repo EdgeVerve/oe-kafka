@@ -427,7 +427,7 @@ describe(chalk.blue('Kafka Mixin Test'), function (done) {
       'time': new Date().toISOString(),
       'operation': 'DELETE',
       'datacontenttype': 'text/html',
-      'data': id
+      'data': {id: id}
     };
 
 
