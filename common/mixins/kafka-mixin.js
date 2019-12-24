@@ -44,7 +44,15 @@ function after(ctx, next) {
   var topic = topicPrefix + '.' + topicSuffix;
 
   var data = (ctx.instance && ctx.instance.__data) || ctx.data;
-  var id = (ctx.instance && ctx.instance.id) || data.id;
+  var id = (ctx.instance && ctx.instance.id) || (data && data.id);
+  var op = '';
+  if (!id) {
+    id = (ctx.where && ctx.where.and && ctx.where.and.length > 0 && ctx.where.and[0].and && ctx.where.and[0].and.length > 0 && ctx.where.and[0].and[0].and && ctx.where.and[0].and[0].and.length > 0 && ctx.where.and[0].and[0].and[0].id && ctx.where.and[0].and[0].and[0].id.toString());
+    if (id) {
+      op = 'DELETE';
+    }
+  }
+
 
   var eventPayload =
   {
@@ -54,7 +62,7 @@ function after(ctx, next) {
     'subject': '',
     'id': id,
     'time': new Date().toISOString(),
-    'operation': '',
+    'operation': op,
     'datacontenttype': 'application/json',
     'data': JSON.stringify(data)
   };
