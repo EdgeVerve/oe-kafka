@@ -51,7 +51,16 @@ module.exports = function (app, cb) {
       var Model = loopback.findModel(modelName);
       if (Model) {
         var data;
-        data = payload.data;
+        if (typeof data === 'string') {
+          try {
+            data = JSON.parse(data);
+          } catch (e) {
+            console.warn('Could not parse data in payload: ' + payload.data + ' ' + e);
+          }
+        } else {
+          data = payload.data;
+        }
+        if (!data) return;
         var ctx = payload.ctx || {};
         ctx.kafkaEvent = true;
         try {

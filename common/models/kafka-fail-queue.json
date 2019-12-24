@@ -1,6 +1,7 @@
 {
     "name": "KafkaFailQueue",
     "base": "BaseEntity",
+    "description": "Stores records that failed to publish to Kafka",
     "idInjection": true,
     "properties": {
       "topic": {
