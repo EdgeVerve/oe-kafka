@@ -26,39 +26,36 @@ module for **oe-Cloud** based applications. This module further provides a *oeCl
 
 The mixin is named **KafkaMixin** and it provides the *Kafka Publisher* feature.
 
-The boot script in the *oe-kafka* module provides   the **Kafka Subscriber** feature.
+The boot script in the *oe-kafka* module provides the **Kafka Subscriber** feature.
 
 The two features can work independent of each other but share some [Configuration](#Configuration) options.
 
 ### Kafka Publisher
 
-It provides the ability to automatically publish *Create*, *Update* and *Delete* operation data to a configured **Kafka** *topic*. The *topic* is composed of a
-*prefix* and a *suffix*, concatenated by a period (.). Thus the *topic* is of the form `<PREFIX>.<SUFFIX>`. 
+It provides the ability to automatically publish *Create*, *Update* and *Delete* operation data to a configured **Kafka** *topic*. The *topic* is composed of a *prefix* and a *suffix*, concatenated by a period (.). Thus the *topic* is of the form `<PREFIX>.<SUFFIX>`. 
 
 
 The *prefix* is configurable in the application's **config.json**, while the *suffix* is automatically set to the **Model Name** by default. 
 The *suffix* may be overridden at the model level through **KafkaMixin** properties.
 
 
-The application Models for which this feature applies, is configurable. The application may choose to apply the **Kafka Publisher** feature to all models of the 
-application, which is the default behavior for all app Models derived from `BaseEntity.`
+The application Models for which this feature applies, is configurable. The application may choose to apply the **Kafka Publisher** feature to all models of the application, which is the default behavior for all app Models derived from `BaseEntity.`
 
 However, this default can be turned off using the `noBaseEntityAttach` flag in `app-list.json`. 
 After this, **KafkaMixin** needs to be explicitly attached to models that need the **Kafka Publisher** feature.
 
 
-Failure to publish to Kafka Topic results in the event being logged to an error queue Model, namely **KafkaFailQueue**.
+Failure to publish to Kafka Topic results in the event being logged to an error queue Model named **KafkaFailQueue**.
 
 
 ### Kafka Subscriber
-It provides the ability to automatically *Create*, *Update* and *Delete* Model instances whenever appropriate messages are received on a configured Kafka topic. 
+It provides the ability to automatically *Create*, *Update* and *Delete* Model instances (data) whenever appropriate messages are received on a configured Kafka topic. 
 
 There are 2 ways to configure the *topic* for this feature - 
-1. Have a common topic for receiving Kafka messages - this works for all Models, i.e., any model instance can be created/updated/deleted if the appropriate message is received on this common topic.
-2. Have Model-specific topics for receiving Kafka messages - this works for only the Models which are specified as part of the topic-model mapping.
+1. Have a common topic for receiving Kafka messages - this works for all Models, i.e., any model instance can be created/updated/deleted if the appropriate message is received on this common topic. In this case, the message needs to provide the modelName in `msg.type` field.
+2. Have Model-specific topics for receiving Kafka messages. In this case, the message should not specify the modelName. It is taken from the topic-model mapping in the [configuration](#Configuration).
 
-Both the above configurations are done via **config.json**. These configurations can both exist simultaneously, in which case, messages may be sent to either the default topic 
-or the topics specified as part of the topic-model mapping.
+Both the above configurations are done via **config.json**. These [configurations](#Configuration) can both exist simultaneously, in which case, appropriate messages (with/without `msg.type` (see above)) may be sent to either the default topic or the topics specified as part of the topic-model mapping.
 
 
 
@@ -142,8 +139,7 @@ In this scenario, the models that need the **Kafka Publisher** feature should de
 ## Event Format
 
 The **oe-kafka** module uses the [CloudEvent v1.0](https://github.com/cloudevents/spec/blob/master/spec.md) specification as the format of data 
-that is published to the **Kafka** *topic* when using the **Kafka Publisher** feature. This is the same format that is expected by **oe-kafka**
-when using the **Kafka Subscriber** feature as well.
+that is published to the **Kafka** *topic* by the *oeCloud* based app when using the **Kafka Publisher** feature. This is the same format that is expected by **oe-kafka** when using the **Kafka Subscriber** feature as well.
 
 An example of an event published/subscribed to/from **Kafka** in *CloudEvent* format is as follows:
 
@@ -151,15 +147,15 @@ An example of an event published/subscribed to/from **Kafka** in *CloudEvent* fo
 **Example CloudEvent message**
 ```js
 {
-   "specversion":"1.0",
-   "type":"Contact",
-   "source":"",
-   "subject":"",
-   "id":"5dee166581edba6f8680ed9f",
-   "time":"2019-12-09T09:39:49.161Z",
-   "operation":"CREATE",
-   "datacontenttype":"application/json",
-   "data":"{\"FirstName\":\"Ajith\",\"LastName\":\"Vasudevan\",\"_isDeleted\":false,\"_type\":\"Contact\",\"_createdBy\":\"system\",\"_createdOn\":\"2019-12-09T09:39:49.156Z\",\"_modifiedBy\":\"system\",\"_modifiedOn\":\"2019-12-09T09:39:49.156Z\",\"_version\":\"f636df1f-2231-4232-b022-5dd259cf2077\",\"id\":\"5dee166581edba6f8680ed9f\"}"
+   "specversion":"1.0",                          // required
+   "type":"Contact",                             // optional. see above
+   "source":"",                                  // optional
+   "subject":"",                                 // optional
+   "id":"5dee166581edba6f8680ed9f",              // optional
+   "time":"2019-12-09T09:39:49.161Z",            // required
+   "operation":"CREATE",                         // required
+   "datacontenttype":"application/json",         // required  
+   "data":"{\"FirstName\":\"Ajith\",\"LastName\":\"Vasudevan\",\"_isDeleted\":false,\"_type\":\"Contact\",\"_createdBy\":\"system\",\"_createdOn\":\"2019-12-09T09:39:49.156Z\",\"_modifiedBy\":\"system\",\"_modifiedOn\":\"2019-12-09T09:39:49.156Z\",\"_version\":\"f636df1f-2231-4232-b022-5dd259cf2077\",\"id\":\"5dee166581edba6f8680ed9f\"}"        // required. Contains actual payload published
 }
 ```
 
@@ -168,7 +164,7 @@ An example of an event published/subscribed to/from **Kafka** in *CloudEvent* fo
 <a name="Configuration"></a>
 ## Configuration
 The *oe-kafka* module features can be configured via the `server/config.json` file. 
-The following example shows the minimum parameters required in this file:
+The following example shows the structure of the kafka configuration in this file:
 
 
 **server/config.json** 
@@ -200,19 +196,28 @@ The following example shows the minimum parameters required in this file:
 
             }, 
             
-            "producerOpts": {                   // Optional
+            "producerOpts": {                       // Optional. No default values are set.
             
-                "requireAcks": 1,
-                "ackTimeoutMs": 100,
-                "partitionerType": 2
+                "requireAcks": 1,                   // Optional. No default values are set.
+                "ackTimeoutMs": 100,                // Optional. No default values are set.
+                "partitionerType": 2                // Optional. No default values are set.
             },
             
-            "topicPrefix": "oe-demo-app",       //  Mandatory
-           
-            "subscriber": {                     // Optional
-                "disabled": false,
-                "topicSuffix": "all_models",
-                "mappings": {
+            "topicPrefix": "oe-demo-app",          //  Mandatory
+
+            "consumerGroupOpts": {                 // Optional. Some defaults are provided. See below.
+
+                "groupId" : "oe-demo-app-group",   // default: topicPrefix + '-group'
+                "autoCommitIntervalMs" : 5000,     // default: 2000
+                "commitOffsetsOnFirstJoin" : true, // default: true
+                "fromOffset" : true,               // default: true                
+            },
+          
+            "subscriber": {                       // Optional. Absence disables Kafka Subscriber feature
+
+                "disabled": false,                // Optional. Default: false. Setting to true disables Kafka Subscriber feature
+                "topicSuffix": "all_models",      // See explanation below
+                "mappings": {                     // See explanation below
                     "Customer_Topic": "Customer", 
                     "Customer2_Topic": "Customer2"
                 }
@@ -229,13 +234,17 @@ the documentation of the [kafka-node](https://www.npmjs.com/package/kafka-node) 
 
 
 
-`producerOpts` is an object having the same properties as the **Producer** of the npm module [kafka-node](https://www.npmjs.com/package/kafka-node).
+`producerOpts` is an object having the same properties as **Producer** of the npm module [kafka-node](https://www.npmjs.com/package/kafka-node).
 
 `producerOpts` and all properties within it are optional.
 
-
-
 `topicPrefix` is used by **oe-kafka** as the prefix of the **Kafka** *topic* to which events are published. It is a mandatory field.
+
+`consumerGroupOpts` is an object having the same properties as **ConsumerGroup** of the npm module [kafka-node](https://www.npmjs.com/package/kafka-node).
+
+`consumerGroupOpts` and all properties within it are optional. `consumerGroupOpts.kafkaHost` is ignored, if provided. `kafkaHost` will be taken from `clientOpts.kafkaHost`
+
+`consumerGroupOpts.groupId` is set by default as `topicPrefix + '-group'`
 
 `subscriber` is an object with the following keys - 
 
