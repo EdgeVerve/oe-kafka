@@ -45,8 +45,17 @@ module.exports = function (app, cb) {
 
     /* istanbul ignore if */
     if (!payload) return;
-
-    var modelName = payload.type;
+    var topic = msg.topic ? msg.topic.substring(topicPrefix.length + 1) : null;
+    var modelName;
+    if (payload.type) {
+      if (options.subscriber.topicSuffix && topic === options.subscriber.topicSuffix) {
+        modelName = payload.type;
+      } else {
+        console.error('payload received with type (' + payload.type + '), but not on options.subscriber.topicSuffix (' + options.subscriber.topicSuffix + ')');
+      }
+    } else {
+      modelName = mappings[topic];
+    }
     if (modelName) {
       var Model = loopback.findModel(modelName);
       if (Model) {
@@ -90,7 +99,7 @@ module.exports = function (app, cb) {
         console.warn('Model ' + modelName + ' not found in application' + ': Payload received: ' + payload);
       }
     } else {
-      console.warn('modelName not found (payload.type is null or undefined) for topic ' + msg.topic + ': Payload received: ' + payload);
+      console.warn('modelName not found. Topic: ' + msg.topic + ', Payload received: ' + JSON.stringify(payload) + ', mappings: ' + JSON.stringify(mappings));
     }
   });
 };

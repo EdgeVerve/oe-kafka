@@ -310,7 +310,6 @@ describe(chalk.blue('Kafka Mixin Test'), function (done) {
     var eventPayload =
     {
       'specversion': '1.0',
-      'type': 'Customer',
       'source': '',
       'subject': '',
       'id': '',
@@ -366,7 +365,6 @@ describe(chalk.blue('Kafka Mixin Test'), function (done) {
     var eventPayload =
     {
       'specversion': '1.0',
-      'type': 'Customer',
       'source': '',
       'subject': '',
       'id': id,
@@ -413,7 +411,6 @@ describe(chalk.blue('Kafka Mixin Test'), function (done) {
     var eventPayload =
     {
       'specversion': '1.0',
-      'type': 'Customer',
       'source': '',
       'subject': '',
       'id': id,
@@ -465,7 +462,6 @@ describe(chalk.blue('Kafka Mixin Test'), function (done) {
     var eventPayload =
     {
       'specversion': '1.0',
-      'type': 'Customer2',
       'source': '',
       'subject': '',
       'id': '',
