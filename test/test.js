@@ -10,10 +10,10 @@
 var oecloud = require('oe-cloud');
 var loopback = require('loopback');
 var kafka = require('kafka-node');
-var Consumer = kafka.Consumer;
+var ConsumerGroup = kafka.ConsumerGroup;
 var Producer = kafka.Producer;
 var client;
-var consumer;
+var consumerGroup;
 var producer;
 var chalk = require('chalk');
 var chai = require('chai');
@@ -42,11 +42,11 @@ producer.on('error', function (err) {
 });
 producer.on('ready', function (err) {
   console.log('producer ready for tests');
-  var topic1 = { topic: dbType + '.' + 'fin_app.Customer', partitions: 1, replicationFactor: 1 };
-  var topic2 = { topic: dbType + '.' + 'fin_app.CUST2', partitions: 1, replicationFactor: 1 };
-  var topic3 = { topic: dbType + '.' + 'fin_app.Customer_Topic', partitions: 1, replicationFactor: 1 };
-  var topic4 = { topic: dbType + '.' + 'fin_app.Customer2_Topic', partitions: 1, replicationFactor: 1 };
-  var topic5 = { topic: dbType + '.' + 'fin_app.all_models', partitions: 1, replicationFactor: 1 };
+  var topic1 = { topic: dbType + '.' + 'fin_app.Customer', partitions: 10, replicationFactor: 1 };
+  var topic2 = { topic: dbType + '.' + 'fin_app.CUST2', partitions: 10, replicationFactor: 1 };
+  var topic3 = { topic: dbType + '.' + 'fin_app.Customer_Topic', partitions: 10, replicationFactor: 1 };
+  var topic4 = { topic: dbType + '.' + 'fin_app.Customer2_Topic', partitions: 10, replicationFactor: 1 };
+  var topic5 = { topic: dbType + '.' + 'fin_app.all_models', partitions: 10, replicationFactor: 1 };
 
   producer.createTopics([topic1, topic2, topic3, topic4, topic5], function (err, ack) {
     if(err) {
@@ -54,22 +54,18 @@ producer.on('ready', function (err) {
       process.exit(1);
     } else {
       console.log('created test topics');
-      consumer = new Consumer(
-        client,
-        [
-          { topic: dbType + '.' + 'fin_app.Customer', partition: 0 },
-          { topic: dbType + '.' + 'fin_app.CUST2', partition: 0 }
-        ],
-        {
-          autoCommit: true,
-          fromOffset: false,
-          groupId: 'ajith-group'
-        }
-      );
-      consumer.on('error', function (err) {
-        console.log(err);
-        process.exit(1);
-      });
+      var cgOpts = {
+        kafkaHost: kafkaOptions.clientOpts.kafkaHost, // connect directly to kafka broker (instantiates a KafkaClient)
+        groupId: 'test.' + kafkaOptions.topicPrefix + '-group',
+        protocol: ['roundrobin'],
+        onRebalance: (isAlreadyMember, callback) => { callback(); } // or null
+      };
+      var t1 =  dbType + '.' + 'fin_app.Customer';
+      var t2 =  dbType + '.' + 'fin_app.CUST2';
+      
+      consumerGroup = new ConsumerGroup(cgOpts, [t1, t2]);
+       
+
       console.log('booting oeCloud ...');
       oecloud.boot(__dirname, function (err) {
         if (err) {
@@ -86,9 +82,6 @@ producer.on('ready', function (err) {
     }
   });
 });
-
-
-
 
 
 
@@ -110,11 +103,11 @@ describe(chalk.blue('Kafka Mixin Test'), function (done) {
 
   after('Tear down', function (done) {
     console.log("Tear down");
-    done();
+    setTimeout(done, 3000);
   });
 
   afterEach('Cleanup', function (done) {
-    if (lsnr) consumer.off('message', lsnr);
+    if (lsnr) consumerGroup.off('message', lsnr);
     if (afterSave) {
       KafkaFailQueue.evRemoveObserver("after save", afterSave);
       customer.evRemoveObserver("after save", afterSave);
@@ -143,7 +136,7 @@ describe(chalk.blue('Kafka Mixin Test'), function (done) {
       done(new Error("Shouldn't have inserted into KafkaFailQueue"));
     }
 
-    consumer.on('message', lsnr);
+    consumerGroup.on('message', lsnr);
     KafkaFailQueue.evObserve('after save', afterSave);
 
     customer4.create(item1, { ctx: { tenantId: "/default" } }, function (err, r) {
@@ -168,7 +161,7 @@ describe(chalk.blue('Kafka Mixin Test'), function (done) {
       done();
     }
 
-    consumer.on('message', lsnr);
+    consumerGroup.on('message', lsnr);
 
     customer.create(item1, { ctx: { tenantId: "/default" } }, function (err, r) {
       inst = r;
@@ -185,7 +178,7 @@ describe(chalk.blue('Kafka Mixin Test'), function (done) {
       done();
     }
 
-    consumer.on('message', lsnr);
+    consumerGroup.on('message', lsnr);
 
     inst.age = 15;
     inst.save({ ctx: { tenantId: "/default" } }, function (err, r) {
@@ -202,7 +195,7 @@ describe(chalk.blue('Kafka Mixin Test'), function (done) {
       done();
     }
 
-    consumer.on('message', lsnr);
+    consumerGroup.on('message', lsnr);
 
     var item1a = {
       'age': 17
@@ -222,7 +215,7 @@ describe(chalk.blue('Kafka Mixin Test'), function (done) {
       done();
     }
 
-    consumer.on('message', lsnr);
+    consumerGroup.on('message', lsnr);
 
     inst.updateAttribute("name", "CustomerA1", { ctx: { tenantId: "/default" } }, function (err, r) {
       inst = r;
@@ -240,7 +233,7 @@ describe(chalk.blue('Kafka Mixin Test'), function (done) {
       done();
     }
 
-    consumer.on('message', lsnr);
+    consumerGroup.on('message', lsnr);
     inst.delete({ ctx: { tenantId: "/default" } }, function (err, r) {
       inst = r;
     });
@@ -262,7 +255,7 @@ describe(chalk.blue('Kafka Mixin Test'), function (done) {
       done();
     }
 
-    consumer.on('message', lsnr);
+    consumerGroup.on('message', lsnr);
 
     customer2.create(item2, { ctx: { tenantId: "/default" } }, function (err, r) {
 
@@ -270,7 +263,7 @@ describe(chalk.blue('Kafka Mixin Test'), function (done) {
   });
 
 
-  it('t7 - failure to publish to Kafka should result in insertion to KafkaFailQueue model', function (done) {
+  xit('t7 - failure to publish to Kafka should result in insertion to KafkaFailQueue model', function (done) {
     console.log('starting t7 ...');
 
     var item1 = {
@@ -296,7 +289,7 @@ describe(chalk.blue('Kafka Mixin Test'), function (done) {
       setTimeout(done, 500);
     }
 
-    consumer.on('message', lsnr);
+    consumerGroup.on('message', lsnr);
     KafkaFailQueue.evObserve('after save', afterSave);
 
     customer3.create(item1, { ctx: { tenantId: "/default" } }, function (err, r) {

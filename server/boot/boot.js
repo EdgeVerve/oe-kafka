@@ -16,26 +16,26 @@ var oeKafkaClient = queueClient(options);
 var mappings;
 
 module.exports = function (app, cb) {
-  var topicPayload = [];
+  var topics = [];
   process.nextTick(cb);              // topicSuffix   Model
   if (!options.subscriber) return;
   if (options.subscriber.disabled === true) return;
   mappings = options.subscriber.mappings;   // {'Customer_Topic': 'Customer', 'Customer2_Topic': 'Customer2'}
   if (mappings) {
-    topicPayload = Object.keys(mappings).map(function (item) {
-      return ({ topic: topicPrefix + '.' + item, partition: 0 });
+    topics = Object.keys(mappings).map(function (item) {
+      return (topicPrefix + '.' + item);
     });
   }
 
   if (options.subscriber.topicSuffix) {
-    topicPayload.push({ topic: topicPrefix + '.' + options.subscriber.topicSuffix, partition: 0 });
+    topics.push(topicPrefix + '.' + options.subscriber.topicSuffix);
   }
   /* istanbul ignore if */
-  if (topicPayload.length < 1) {
+  if (topics.length < 1) {
     console.warn('Kafka: No Kafka topics found for subscription.');
     return;
   }
-  oeKafkaClient.subscribe(topicPayload, function (msg) {
+  oeKafkaClient.subscribe(topics, function (msg, consumerGroup) {
     var payload;
     try {
       payload = JSON.parse(msg.value);

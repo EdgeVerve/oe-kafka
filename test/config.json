@@ -32,13 +32,16 @@
         "maxTimeout": 6000
       }
     },
-    "producerOpts": {},
-    "consumerOpts": { "autoCommit": true },
+    "producerOpts": { },
+    "consumerGroupOpts": { },
     "topicPrefix": "fin_app",
     "subscriber": {
       "disabled": false,
       "topicSuffix": "all_models",
-      "mappings": {"Customer_Topic": "Customer", "Customer2_Topic": "Customer2"}
+      "mappings": {
+        "Customer_Topic": "Customer", 
+        "Customer2_Topic": "Customer2"
+      }
     }
   }
 }
