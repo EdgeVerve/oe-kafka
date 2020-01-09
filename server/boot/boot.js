@@ -46,16 +46,22 @@ module.exports = function (app, cb) {
     /* istanbul ignore if */
     if (!payload) return;
     var topic = msg.topic ? msg.topic.substring(topicPrefix.length + 1) : null;
+    if (!topic) return;
     var modelName;
-    if (payload.type) {
-      if (options.subscriber.topicSuffix && topic === options.subscriber.topicSuffix) {
-        modelName = payload.type;
+    if (options.subscriber.topicSuffix) {
+      if (topic === options.subscriber.topicSuffix) {
+        if (payload.type) {
+          modelName = payload.type;
+        } else {
+          console.error('payload received on topic ' + options.subscriber.topicSuffix + ' without type. Payload: ' + JSON.stringify(payload));
+        }
       } else {
-        console.error('payload received with type (' + payload.type + '), but not on options.subscriber.topicSuffix (' + options.subscriber.topicSuffix + ')');
+        modelName = mappings[topic];
       }
     } else {
       modelName = mappings[topic];
     }
+
     if (modelName) {
       var Model = loopback.findModel(modelName);
       if (Model) {
@@ -85,18 +91,22 @@ module.exports = function (app, cb) {
               else console.log('Kafka: Successfully UPDATED ' + modelName + ' with id ' + data.id);
             });
           } else if (payload.operation === 'DELETE') {
-            Model.remove({ id: data.id }, ctx, function (err, dt) {
-              if (err) console.log('Could not delete instance of ' + modelName + '. Data from Kafka: ' + payload.data + ' ' + err.message);
-              else console.log('Kafka: Successfully DELETED ' + modelName + ' with id ' + data.id);
-            });
+            if (!data.id) {
+              console.log('Could not delete instance of ' + modelName + '. Data from Kafka: ' + payload.data + 'id is undefined or null');
+            } else {
+              Model.remove({ id: data.id }, ctx, function (err, dt) {
+                if (err) console.log('Could not delete instance of ' + modelName + '. Data from Kafka: ' + payload.data + ' ' + err.message);
+                else console.log('Kafka: Successfully DELETED ' + modelName + ' with id ' + data.id);
+              });
+            }
           } else {
             console.warn('Kafka: Could not perform invalid operation: ' + payload.operation + ': Payload received: ' + payload);
           }
         } catch (e) {
-          console.warn('Kafka: Could not ' + payload.operation + ': Payload received: ' + payload + ': Error: ' + e);
+          console.warn('Kafka: Could not ' + payload.operation + ': Payload received: ' + JSON.stringify(payload) + ': Error: ' + e);
         }
       } else {
-        console.warn('Model ' + modelName + ' not found in application' + ': Payload received: ' + payload);
+        console.warn('Model ' + modelName + ' not found in application' + ': Payload received: ' + JSON.stringify(payload));
       }
     } else {
       console.warn('modelName not found. Topic: ' + msg.topic + ', Payload received: ' + JSON.stringify(payload) + ', mappings: ' + JSON.stringify(mappings));
