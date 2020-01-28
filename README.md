@@ -26,7 +26,7 @@ module for **oe-Cloud** based applications. This module further provides a *oeCl
 
 The mixin is named **KafkaMixin** and it provides the *Kafka Publisher* feature.
 
-The boot script in the *oe-kafka* module provides the **Kafka Subscriber** feature.
+The boot script in the *oe-kafka* module provides the *Kafka Subscriber* feature.
 
 The two features can work independent of each other but share some [Configuration](#Configuration) options.
 
