@@ -94,7 +94,7 @@ The code snippets below show how steps 1 and 2 can be done:
     <b>{
         "path": "oe-kafka",
         "enabled": true,
-        "noBaseEntityAttach": true
+        "KafkaMixin": true
     },</b>
 	{
 		"path" : "oe-workflow",
@@ -107,12 +107,9 @@ The code snippets below show how steps 1 and 2 can be done:
 ]
 </pre>
 
-Note the new app-list parameter `noBaseEntityAttach`. This setting affects the **Kafka Publisher** feature only. 
+Note the app-list parameter `KafkaMixin: true`. This is required to be set to `true` to enable the `KafkaMixin` from the **oe-kafka** module.
 
-Setting this to `true` prevents the **KafkaMixin** mixin, hence the **Kafka Publisher** feature from being applied to *BaseEntity* Model, 
-and thus preventing this feature from being applied to all BaseEntity-derived Models by default.
-
-In this scenario, the models that need the **Kafka Publisher** feature should declare the **KafkaMixin** explicitly as shown below, in bold:
+The aplication models that need the **Kafka Publisher** feature should declare the **KafkaMixin** explicitly as shown below, in bold:
 
 **common/models/contact.json**  (Relevant section in **bold**):
 <pre>
@@ -227,6 +224,24 @@ The following example shows the structure of the kafka configuration in this fil
        ...
        ...
 </pre>
+
+
+
+A minimal config is as follows:
+<pre>
+       ...
+       ...
+       ...
+       
+       "kafka": {
+           "clientOpts": { "kafkaHost": "kafka:9092"}, 
+           "topicPrefix": "oe-demo-app"
+        },
+        ...
+        ...
+        ...
+</pre>
+
 
 Here, the value of `clientOpts` is an object having the same properties as the **KafkaClient** of the npm module [kafka-node](https://www.npmjs.com/package/kafka-node).
 Within the `clientOpts` object, only `kafkaHost` is mandatory. `kafkaHost` is of the form `<host>:<port>`. For explanations of the rest of the `clientOpts` parameters, see
