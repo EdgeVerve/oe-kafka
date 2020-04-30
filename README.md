@@ -40,7 +40,8 @@ The *suffix* may be overridden at the model level through **KafkaMixin** propert
 
 
 The application Models for which this feature applies, is configurable. By default, this feature is turned off for all Models. 
-To enable it, the, **KafkaMixin** needs to be explicitly attached to models that need the **Kafka Publisher** feature.
+To enable it, **KafkaMixin** needs to be explicitly attached to models that need the **Kafka Publisher** feature. 
+If it is attached to a Base Model, then all derived Models will automatically have this feature enabled.
 
 
 Failure to publish to Kafka Topic results in the event being logged to an error queue Model named **KafkaFailQueue**.
