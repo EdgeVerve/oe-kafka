@@ -39,10 +39,8 @@ The *prefix* is configurable in the application's **config.json**, while the *su
 The *suffix* may be overridden at the model level through **KafkaMixin** properties.
 
 
-The application Models for which this feature applies, is configurable. The application may choose to apply the **Kafka Publisher** feature to all models of the application, which is the default behavior for all app Models derived from `BaseEntity.`
-
-However, this default can be turned off using the `noBaseEntityAttach` flag in `app-list.json`. 
-After this, **KafkaMixin** needs to be explicitly attached to models that need the **Kafka Publisher** feature.
+The application Models for which this feature applies, is configurable. By default, this feature is turned off for all Models. 
+To enable it, the, **KafkaMixin** needs to be explicitly attached to models that need the **Kafka Publisher** feature.
 
 
 Failure to publish to Kafka Topic results in the event being logged to an error queue Model named **KafkaFailQueue**.
