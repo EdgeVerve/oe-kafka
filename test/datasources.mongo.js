@@ -5,7 +5,7 @@
  *
  */
 var mongoHost = process.env.MONGO_HOST || 'localhost';
-var dbName = process.env.DB_NAME || 'oe-kafka-test';
+var dbName = process.env.DB_NAME || "dbname";
 module.exports = 
 {
   "memdb": {
